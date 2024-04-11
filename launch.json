@@ -1,0 +1,15 @@
+{
+    "input_prompt": "example/reference_4.wav",
+    "input_txt": "example/reference_4.txt",
+    "output_dir": "output",
+    "ckpt": "./logs/hierspeechpp_libritts960/hierspeechpp_lt960_ckpt.pth",
+    "ckpt_text2w2v": "./logs/ttv_libritts_v1/ttv_lt960_ckpt.pth",
+    "ckpt_sr": "./speechsr24k/G_340000.pth",
+    "ckpt_sr48": "./speechsr48k/G_100000.pth",
+    "denoiser_ckpt": "denoiser/g_best",
+    "scale_norm": "max",
+    "output_sr": 48000,
+    "noise_scale_ttv": 0.333,
+    "noise_scale_vc": 0.333,
+    "denoise_ratio": 0.8
+}
