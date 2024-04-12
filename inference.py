@@ -48,7 +48,7 @@ def add_blank_token(text):
     text_norm = torch.LongTensor(text_norm)
     return text_norm
 
-def tts(text, a, hierspeech):
+def tts(text, a, hierspeech, return_audio: bool = False):
     
     net_g, text2w2v, speechsr, denoiser, mel_fn = hierspeech
 
@@ -122,15 +122,18 @@ def tts(text, a, hierspeech):
 
     converted_audio = converted_audio.cpu().numpy().astype('int16')
 
-    file_name2 = "{}.wav".format(file_name)
-    output_file = os.path.join(a['output_dir'], file_name2)
-    
-    if a['output_sr'] == 48000:
-        write(output_file, 48000, converted_audio)
-    elif a['output_sr'] == 24000:
-        write(output_file, 24000, converted_audio)
+    if not return_audio:
+        file_name2 = "{}.wav".format(file_name)
+        output_file = os.path.join(a['output_dir'], file_name2)
+        
+        if a['output_sr'] == 48000:
+            write(output_file, 48000, converted_audio)
+        elif a['output_sr'] == 24000:
+            write(output_file, 24000, converted_audio)
+        else:
+            write(output_file, 16000, converted_audio)
     else:
-        write(output_file, 16000, converted_audio)
+        return converted_audio
 
 def model_load(a):
     mel_fn = MelSpectrogramFixed(
@@ -187,6 +190,28 @@ def inference(a: dict):
     # text = "hello I'm hierspeech"
     
     tts(text, a, hierspeech)
+
+class TTSModel:
+    def __init__(self, config_path: str):
+        with open(config_path, 'r') as f:
+            self.config = json.load(f)
+
+        global device, hps, hps_t2w2v,h_sr,h_sr48, hps_denoiser
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+        hps = utils.get_hparams_from_file(os.path.join(os.path.split(self.config['ckpt'])[0], 'config.json'))
+        hps_t2w2v = utils.get_hparams_from_file(os.path.join(os.path.split(self.config['ckpt_text2w2v'])[0], 'config.json'))
+        h_sr = utils.get_hparams_from_file(os.path.join(os.path.split(self.config['ckpt_sr'])[0], 'config.json') )
+        h_sr48 = utils.get_hparams_from_file(os.path.join(os.path.split(self.config['ckpt_sr48'])[0], 'config.json') )
+        hps_denoiser = utils.get_hparams_from_file(os.path.join(os.path.split(self.config['denoiser_ckpt'])[0], 'config.json'))
+
+        self._model = model_load(self.config)
+
+    def invoke(self, text):
+        tts(text, self.config, self._model)
+    
+
+        
 
 def main():
     print('Initializing Inference Process..')

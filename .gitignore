@@ -2,3 +2,7 @@ __pycache__/
 logs/*
 !logs/.gitkeep
 output/
+
+example/*
+!example/reference_*
+usage.py
